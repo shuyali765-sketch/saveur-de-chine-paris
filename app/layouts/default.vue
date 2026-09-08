@@ -1,9 +1,9 @@
 <template>
-    <div class="default-layout min-h-screen container mx-auto flex flex-col">
+    <div class="default-layout min-h-screen flex flex-col overflow-x-hidden bg-background text-foreground">
         <the-navbar />
-        <div class="flex-auto">
+        <main class="flex-auto">
             <slot />
-        </div>
+        </main>
         <the-footer />
     </div>
 </template>
