@@ -8,10 +8,7 @@
         <p class="mt-3 text-lg text-primary">
           Mes adresses chinoises testées à Paris
         </p>
-        <p class="mt-5 font-serif text-2xl text-gold">
-          Mes premières recommandations arrivent bientôt
-        </p>
-        <p class="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
+        <p class="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground">
           Ici, je partage mes avis personnels sur les restaurants chinois
           que j’ai réellement testés à Paris : l’ambiance, les plats, et
           si j’y retournerais.
@@ -29,16 +26,35 @@
       <RestaurantCarousel />
     </section>
 
-    <section class="mt-16">
+    <section class="mt-12 sm:mt-16">
+      <form
+        class="mx-auto flex w-full max-w-2xl flex-col gap-3 rounded-3xl bg-secondary px-4 py-3 sm:flex-row sm:items-center sm:rounded-full sm:px-5"
+        role="search"
+        @submit.prevent="scrollToResults"
+      >
+        <label class="sr-only" for="home-search">
+          Rechercher un restaurant, une cuisine ou un quartier
+        </label>
+        <input
+          id="home-search"
+          v-model="searchQuery"
+          type="search"
+          placeholder="Rechercher un restaurant, une cuisine ou un quartier..."
+          class="min-w-0 w-full flex-1 bg-transparent px-1 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground"
+        >
+        <Button type="submit" class="w-full rounded-full sm:w-auto">
+          Rechercher
+        </Button>
+      </form>
+    </section>
+
+    <section id="adresses" class="mt-16 scroll-mt-8">
       <h2 class="font-serif text-3xl font-semibold">
         Aperçu des adresses
       </h2>
-      <p class="mt-2 text-sm text-muted-foreground">
-        Exemples temporaires, en attendant mes vrais tests.
-      </p>
       <div class="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
         <RestaurantCard
-          v-for="restaurant in restaurants"
+          v-for="restaurant in filteredRestaurants"
           :key="restaurant.name"
           :name="restaurant.name"
           :cuisine="restaurant.cuisine"
@@ -48,12 +64,20 @@
           :alt="restaurant.alt"
         />
       </div>
+      <p
+        v-if="filteredRestaurants.length === 0"
+        class="mt-6 text-sm text-muted-foreground"
+      >
+        Aucune adresse ne correspond à cette recherche.
+      </p>
     </section>
   </div>
 </template>
 
 <script setup>
 import { Button } from '@/components/ui/button'
+
+const searchQuery = ref('')
 
 const restaurants = [
   {
@@ -81,6 +105,23 @@ const restaurants = [
     alt: 'Xiao long bao de Shanghai dans un restaurant à Belleville',
   },
 ]
+
+const filteredRestaurants = computed(() => {
+  const query = searchQuery.value.trim().toLowerCase()
+
+  if (!query) {
+    return restaurants
+  }
+
+  return restaurants.filter((restaurant) => {
+    const haystack = `${restaurant.name} ${restaurant.cuisine} ${restaurant.neighborhood}`.toLowerCase()
+    return haystack.includes(query)
+  })
+})
+
+function scrollToResults() {
+  document.getElementById('adresses')?.scrollIntoView({ behavior: 'smooth' })
+}
 
 useHead({
   title: 'Saveur de Chine à Paris — Testé par Shuya',

@@ -2,10 +2,11 @@
 import { ChevronLeftIcon, ChevronRightIcon } from '@radix-icons/vue'
 
 const images = [
-  {
-    src: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1400&q=80',
-    alt: 'Salle d’un restaurant chinois à Paris, tables dressées sous une lumière chaude',
-  },
+    {
+      src: '/images/plats-chinois.jpg',
+      alt: 'Illustration de plats chinois : raviolis, nouilles, dim sum et spécialités',
+      contain: true,
+    },
   {
     src: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=1400&q=80',
     alt: 'Assiette de raviolis chinois jiaozi, testés dans un restaurant parisien',
@@ -47,7 +48,8 @@ function goToNext() {
       <img
         :src="images[currentIndex].src"
         :alt="images[currentIndex].alt"
-        class="aspect-[4/3] w-full object-cover"
+        class="aspect-[4/3] w-full"
+        :class="images[currentIndex].contain ? 'object-contain bg-[#f6ebe0]' : 'object-cover'"
       >
     </div>
 
