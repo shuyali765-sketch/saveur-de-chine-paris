@@ -27,10 +27,9 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      supabaseUrl: process.env.NUXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL,
-      supabaseKey: process.env.NUXT_PUBLIC_SUPABASE_KEY
-        || process.env.NUXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-        || process.env.NUXT_PUBLIC_SUPABASE_ANON_KEY,
+      // Clés publiques (anon / publishable). Pas de service_role.
+      supabaseUrl: process.env.NUXT_PUBLIC_SUPABASE_URL || 'https://hflznpbfjiahtzjbisvz.supabase.co',
+      supabaseKey: process.env.NUXT_PUBLIC_SUPABASE_KEY || 'sb_publishable_ff46aG0NzwsHCjfc_ppDVw_mUxGLTY1',
     },
   },
   modules: [
