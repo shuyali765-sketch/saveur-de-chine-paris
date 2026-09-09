@@ -251,6 +251,12 @@ async function handleSignup() {
 
   isLoading.value = true
 
+  if (!supabase) {
+    isLoading.value = false
+    formError.value = 'Inscription indisponible. Réessayez plus tard.'
+    return
+  }
+
   const { error } = await supabase.auth.signUp({
     email: email.value.trim(),
     password: password.value,

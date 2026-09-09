@@ -150,6 +150,12 @@ async function handleLogin() {
 
   isLoading.value = true
 
+  if (!supabase) {
+    isLoading.value = false
+    formError.value = 'Connexion indisponible. Réessayez plus tard.'
+    return
+  }
+
   const { error: signInError } = await supabase.auth.signInWithPassword({
     email: email.value.trim(),
     password: password.value,

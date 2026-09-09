@@ -114,12 +114,19 @@ async function handleLogout() {
     }
 
     isLoggingOut.value = true
-    const { error } = await supabase.auth.signOut()
-    userStore.clearAuthProfile()
-    isLoggingOut.value = false
 
-    if (error) {
-        return
+    if (supabase) {
+        const { error } = await supabase.auth.signOut()
+        userStore.clearAuthProfile()
+        isLoggingOut.value = false
+
+        if (error) {
+            return
+        }
+    }
+    else {
+        userStore.clearAuthProfile()
+        isLoggingOut.value = false
     }
 
     await navigateTo('/login')

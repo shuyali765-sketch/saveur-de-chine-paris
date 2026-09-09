@@ -20,8 +20,9 @@ export async function loadUserProfile() {
   const supabase = useSupabaseClient()
   const user = useSupabaseUser()
   const userStore = useUserStore()
+  const userId = user.value?.id || user.value?.sub
 
-  if (!user.value) {
+  if (!supabase || !userId) {
     userStore.clearAuthProfile()
     return { profile: null, error: null }
   }
@@ -29,7 +30,7 @@ export async function loadUserProfile() {
   const { data, error } = await supabase
     .from('user_profile')
     .select('first_name, email')
-    .eq('id', user.value.id)
+    .eq('id', userId)
     .maybeSingle()
 
   if (error) {

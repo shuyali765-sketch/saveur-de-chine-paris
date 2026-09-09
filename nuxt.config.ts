@@ -25,18 +25,19 @@ export default defineNuxtConfig({
       tailwindcss(),
     ],
   },
+  runtimeConfig: {
+    public: {
+      supabaseUrl: process.env.NUXT_PUBLIC_SUPABASE_URL || '',
+      supabaseKey: process.env.NUXT_PUBLIC_SUPABASE_KEY || '',
+    },
+  },
   modules: [
     '@nuxt/image',
     '@pinia/nuxt',
     'pinia-plugin-persistedstate/nuxt',
-    '@nuxtjs/supabase',
     '@vueuse/nuxt',
     'shadcn-nuxt'
   ],
-  supabase: {
-    redirect: false,
-    types: false,
-  },
   shadcn: {
     /**
      * Prefix for all the imported component
