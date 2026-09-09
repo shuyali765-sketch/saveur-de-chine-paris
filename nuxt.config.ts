@@ -29,9 +29,14 @@ export default defineNuxtConfig({
     '@nuxt/image',
     '@pinia/nuxt',
     'pinia-plugin-persistedstate/nuxt',
+    '@nuxtjs/supabase',
     '@vueuse/nuxt',
     'shadcn-nuxt'
   ],
+  supabase: {
+    redirect: false,
+    types: false,
+  },
   shadcn: {
     /**
      * Prefix for all the imported component

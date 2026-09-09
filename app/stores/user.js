@@ -2,16 +2,22 @@ import { defineStore } from 'pinia'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
+    authReady: false,
     profile: {
       firstName: '',
       email: '',
       foodPreference: '',
     },
+    favoriteNames: [],
   }),
 
   getters: {
     hasProfile: (state) => {
       return state.profile.firstName !== ''
+    },
+
+    isFavorite: (state) => {
+      return (name) => state.favoriteNames.includes(name)
     },
   },
 
@@ -19,15 +25,37 @@ export const useUserStore = defineStore('user', {
     setProfile(firstName, email, foodPreference) {
       this.profile.firstName = firstName
       this.profile.email = email
-      this.profile.foodPreference = foodPreference
+      if (foodPreference !== undefined) {
+        this.profile.foodPreference = foodPreference
+      }
+    },
+
+    clearAuthProfile() {
+      this.profile.firstName = ''
+      this.profile.email = ''
+    },
+
+    setAuthReady(value) {
+      this.authReady = value
     },
 
     logout() {
-      this.profile.firstName = ''
-      this.profile.email = ''
-      this.profile.foodPreference = ''
+      this.clearAuthProfile()
+    },
+
+    toggleFavorite(name) {
+      const index = this.favoriteNames.indexOf(name)
+
+      if (index === -1) {
+        this.favoriteNames.push(name)
+      }
+      else {
+        this.favoriteNames.splice(index, 1)
+      }
     },
   },
 
-  persist: true,
+  persist: {
+    pick: ['favoriteNames'],
+  },
 })

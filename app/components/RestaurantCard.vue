@@ -1,4 +1,6 @@
 <script setup>
+import { HeartFilledIcon, HeartIcon } from '@radix-icons/vue'
+
 defineProps({
   name: {
     type: String,
@@ -25,6 +27,8 @@ defineProps({
     required: true,
   },
 })
+
+const userStore = useUserStore()
 </script>
 
 <template>
@@ -38,9 +42,29 @@ defineProps({
       <p class="text-xs font-medium tracking-wide text-gold uppercase">
         {{ cuisine }}
       </p>
-      <h3 class="font-serif text-xl font-semibold text-foreground">
-        {{ name }}
-      </h3>
+      <div class="flex items-start justify-between gap-2">
+        <h3 class="font-serif text-xl font-semibold text-foreground">
+          {{ name }}
+        </h3>
+        <button
+          type="button"
+          class="mt-0.5 shrink-0 rounded-full p-1 text-primary transition-colors hover:bg-secondary"
+          :aria-pressed="userStore.isFavorite(name)"
+          :aria-label="userStore.isFavorite(name) ? `Retirer ${name} des favoris` : `Ajouter ${name} aux favoris`"
+          @click="userStore.toggleFavorite(name)"
+        >
+          <HeartFilledIcon
+            v-if="userStore.isFavorite(name)"
+            class="h-5 w-5"
+            aria-hidden="true"
+          />
+          <HeartIcon
+            v-else
+            class="h-5 w-5"
+            aria-hidden="true"
+          />
+        </button>
+      </div>
       <p class="text-sm text-muted-foreground">
         {{ neighborhood }}
       </p>

@@ -15,8 +15,7 @@
         Se connecter
       </h1>
       <p class="mt-2 text-sm leading-relaxed text-muted-foreground">
-        Formulaire de démonstration : aucune authentification réelle n’est
-        encore en place.
+        Connectez-vous avec l’e-mail et le mot de passe de votre compte.
       </p>
 
       <form
@@ -57,6 +56,14 @@
         </div>
 
         <p
+          v-if="formError"
+          class="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          role="alert"
+        >
+          {{ formError }}
+        </p>
+
+        <p
           v-if="successMessage"
           class="rounded-md bg-secondary px-3 py-2 text-sm text-secondary-foreground"
           role="status"
@@ -64,8 +71,8 @@
           {{ successMessage }}
         </p>
 
-        <Button type="submit" class="mt-2 w-full rounded-full">
-          Se connecter
+        <Button type="submit" class="mt-2 w-full rounded-full" :disabled="isLoading">
+          {{ isLoading ? 'Connexion…' : 'Se connecter' }}
         </Button>
       </form>
 
@@ -86,9 +93,13 @@ useHead({
   title: 'Se connecter — Saveur de Chine à Paris',
 })
 
+const supabase = useSupabaseClient()
+
 const email = ref('')
 const password = ref('')
 const successMessage = ref('')
+const formError = ref('')
+const isLoading = ref(false)
 
 const errors = ref({
   email: '',
@@ -109,8 +120,13 @@ function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
 }
 
-function handleLogin() {
+async function handleLogin() {
+  if (isLoading.value) {
+    return
+  }
+
   successMessage.value = ''
+  formError.value = ''
   errors.value = {
     email: '',
     password: '',
@@ -132,6 +148,29 @@ function handleLogin() {
     return
   }
 
-  successMessage.value = 'Formulaire de connexion valide. L’authentification réelle sera ajoutée ultérieurement.'
+  isLoading.value = true
+
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email: email.value.trim(),
+    password: password.value,
+  })
+
+  if (signInError) {
+    isLoading.value = false
+    formError.value = supabaseAuthMessage(signInError)
+    return
+  }
+
+  const { profile, error: profileError } = await loadUserProfile()
+
+  isLoading.value = false
+
+  if (profileError || !profile) {
+    formError.value = 'Impossible de charger votre profil.'
+    return
+  }
+
+  successMessage.value = 'Connexion réussie.'
+  await navigateTo('/')
 }
 </script>

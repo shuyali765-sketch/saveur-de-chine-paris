@@ -15,8 +15,8 @@
         Créer un compte
       </h1>
       <p class="mt-2 text-sm leading-relaxed text-muted-foreground">
-        Indiquez votre prénom et votre cuisine préférée. Le mot de passe
-        n’est pas enregistré.
+        Créez un compte avec votre e-mail. Le prénom est enregistré
+        dans votre profil Supabase.
       </p>
 
       <form
@@ -124,6 +124,14 @@
         </div>
 
         <p
+          v-if="formError"
+          class="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          role="alert"
+        >
+          {{ formError }}
+        </p>
+
+        <p
           v-if="successMessage"
           class="rounded-md bg-secondary px-3 py-2 text-sm text-secondary-foreground"
           role="status"
@@ -131,8 +139,8 @@
           {{ successMessage }}
         </p>
 
-        <Button type="submit" class="mt-2 w-full rounded-full">
-          S’inscrire
+        <Button type="submit" class="mt-2 w-full rounded-full" :disabled="isLoading">
+          {{ isLoading ? 'Inscription…' : 'S’inscrire' }}
         </Button>
       </form>
 
@@ -153,7 +161,7 @@ useHead({
   title: 'S’inscrire — Saveur de Chine à Paris',
 })
 
-const userStore = useUserStore()
+const supabase = useSupabaseClient()
 
 const firstName = ref('')
 const email = ref('')
@@ -161,6 +169,8 @@ const password = ref('')
 const confirmPassword = ref('')
 const foodPreference = ref('')
 const successMessage = ref('')
+const formError = ref('')
+const isLoading = ref(false)
 
 const errors = ref({
   firstName: '',
@@ -198,8 +208,13 @@ function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
 }
 
-function handleSignup() {
+async function handleSignup() {
+  if (isLoading.value) {
+    return
+  }
+
   successMessage.value = ''
+  formError.value = ''
   errors.value = {
     firstName: '',
     email: '',
@@ -230,25 +245,29 @@ function handleSignup() {
     isValid = false
   }
 
-  if (!foodPreference.value) {
-    errors.value.foodPreference = 'Veuillez sélectionner une préférence culinaire.'
-    isValid = false
-  }
-
   if (!isValid) {
     return
   }
 
-  userStore.setProfile(
-    firstName.value.trim(),
-    email.value.trim(),
-    foodPreference.value,
-  )
+  isLoading.value = true
 
-  successMessage.value = 'Votre profil a bien été créé.'
+  const { error } = await supabase.auth.signUp({
+    email: email.value.trim(),
+    password: password.value,
+    options: {
+      data: {
+        first_name: firstName.value.trim(),
+      },
+    },
+  })
 
-  setTimeout(() => {
-    navigateTo('/')
-  }, 1000)
+  isLoading.value = false
+
+  if (error) {
+    formError.value = supabaseAuthMessage(error)
+    return
+  }
+
+  successMessage.value = 'Inscription réussie. Vérifiez votre adresse e-mail.'
 }
 </script>

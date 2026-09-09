@@ -17,20 +17,39 @@
                     Accueil
                 </NuxtLink>
 
-                <template v-if="userStore.hasProfile">
+                <template v-if="!userStore.authReady">
+                    <span class="text-sm text-muted-foreground">Chargement…</span>
+                </template>
+
+                <template v-else-if="userStore.hasProfile">
                     <span class="whitespace-nowrap text-foreground">
                         Bonjour, {{ userStore.profile.firstName }}
                     </span>
+                    <NuxtLink
+                        to="/favoris"
+                        class="whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground"
+                        :class="{ 'font-medium text-foreground': route.path === '/favoris' }"
+                    >
+                        Mes favoris
+                    </NuxtLink>
                     <button
                         type="button"
                         class="whitespace-nowrap rounded-full border border-border px-3 py-1 text-sm transition-colors hover:bg-accent"
-                        @click="userStore.logout()"
+                        :disabled="isLoggingOut"
+                        @click="handleLogout"
                     >
                         Se déconnecter
                     </button>
                 </template>
 
                 <template v-else>
+                    <NuxtLink
+                        to="/favoris"
+                        class="whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground"
+                        :class="{ 'font-medium text-foreground': route.path === '/favoris' }"
+                    >
+                        Mes favoris
+                    </NuxtLink>
                     <NuxtLink
                         to="/signup"
                         class="whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground"
@@ -84,8 +103,27 @@
 <script setup>
 const route = useRoute()
 const userStore = useUserStore()
+const supabase = useSupabaseClient()
 const isDark = useDark()
 const toggleDark = useToggle(isDark)
+const isLoggingOut = ref(false)
+
+async function handleLogout() {
+    if (isLoggingOut.value) {
+        return
+    }
+
+    isLoggingOut.value = true
+    const { error } = await supabase.auth.signOut()
+    userStore.clearAuthProfile()
+    isLoggingOut.value = false
+
+    if (error) {
+        return
+    }
+
+    await navigateTo('/login')
+}
 </script>
 
 <style lang="postcss" scoped>
