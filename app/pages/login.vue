@@ -82,6 +82,10 @@
           S’inscrire
         </NuxtLink>
       </p>
+      <p class="mt-3 text-center text-xs text-muted-foreground">
+        Mot de passe oublié ? Vous pouvez en définir un nouveau dans Supabase
+        (Authentication → Users → votre e-mail).
+      </p>
     </div>
   </div>
 </template>
@@ -152,7 +156,7 @@ async function handleLogin() {
 
   if (!supabase) {
     isLoading.value = false
-    formError.value = 'Connexion indisponible. Réessayez plus tard.'
+    formError.value = 'Impossible de joindre la base de données. Ce n’est pas un problème de mot de passe.'
     return
   }
 

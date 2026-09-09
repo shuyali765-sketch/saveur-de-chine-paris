@@ -27,8 +27,10 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      supabaseUrl: process.env.NUXT_PUBLIC_SUPABASE_URL || '',
-      supabaseKey: process.env.NUXT_PUBLIC_SUPABASE_KEY || '',
+      supabaseUrl: process.env.NUXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL,
+      supabaseKey: process.env.NUXT_PUBLIC_SUPABASE_KEY
+        || process.env.NUXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+        || process.env.NUXT_PUBLIC_SUPABASE_ANON_KEY,
     },
   },
   modules: [
