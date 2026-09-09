@@ -21,8 +21,11 @@
                     <span class="text-sm text-muted-foreground">Chargement…</span>
                 </template>
 
-                <template v-else-if="userStore.hasProfile">
-                    <span class="whitespace-nowrap text-foreground">
+                <template v-else-if="isLoggedIn">
+                    <span
+                        v-if="userStore.hasProfile"
+                        class="whitespace-nowrap text-foreground"
+                    >
                         Bonjour, {{ userStore.profile.firstName }}
                     </span>
                     <NuxtLink
@@ -43,13 +46,6 @@
                 </template>
 
                 <template v-else>
-                    <NuxtLink
-                        to="/favoris"
-                        class="whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground"
-                        :class="{ 'font-medium text-foreground': route.path === '/favoris' }"
-                    >
-                        Mes favoris
-                    </NuxtLink>
                     <NuxtLink
                         to="/signup"
                         class="whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground"
@@ -103,6 +99,7 @@
 <script setup>
 const route = useRoute()
 const userStore = useUserStore()
+const { isLoggedIn } = useAuthSession()
 const supabase = useSupabaseClient()
 const isDark = useDark()
 const toggleDark = useToggle(isDark)

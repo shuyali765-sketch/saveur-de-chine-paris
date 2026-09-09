@@ -41,10 +41,27 @@
       <h2 class="font-serif text-3xl font-semibold">
         Aperçu des adresses
       </h2>
-      <div class="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
+      <p
+        v-if="isLoading"
+        class="mt-8 text-sm text-muted-foreground"
+      >
+        Chargement des restaurants…
+      </p>
+      <p
+        v-else-if="errorMessage"
+        class="mt-8 text-sm text-destructive"
+        role="alert"
+      >
+        {{ errorMessage }}
+      </p>
+      <div
+        v-else
+        class="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3"
+      >
         <RestaurantCard
           v-for="restaurant in filteredRestaurants"
-          :key="restaurant.name"
+          :key="restaurant.id"
+          :id="restaurant.id"
           :name="restaurant.name"
           :cuisine="restaurant.cuisine"
           :neighborhood="restaurant.neighborhood"
@@ -54,7 +71,13 @@
         />
       </div>
       <p
-        v-if="filteredRestaurants.length === 0"
+        v-if="!isLoading && !errorMessage && restaurants.length === 0"
+        class="mt-6 text-sm text-muted-foreground"
+      >
+        Aucun restaurant n’est encore enregistré dans Supabase.
+      </p>
+      <p
+        v-else-if="!isLoading && !errorMessage && filteredRestaurants.length === 0"
         class="mt-6 text-sm text-muted-foreground"
       >
         Aucune adresse ne correspond à cette recherche.
@@ -67,15 +90,16 @@
 import { Button } from '@/components/ui/button'
 
 const searchQuery = ref('')
+const { restaurants, isLoading, errorMessage, loadRestaurants } = useRestaurants()
 
 const filteredRestaurants = computed(() => {
   const query = searchQuery.value.trim().toLowerCase()
 
   if (!query) {
-    return restaurants
+    return restaurants.value
   }
 
-  return restaurants.filter((restaurant) => {
+  return restaurants.value.filter((restaurant) => {
     const haystack = `${restaurant.name} ${restaurant.cuisine} ${restaurant.neighborhood}`.toLowerCase()
     return haystack.includes(query)
   })
@@ -84,6 +108,10 @@ const filteredRestaurants = computed(() => {
 function scrollToResults() {
   document.getElementById('adresses')?.scrollIntoView({ behavior: 'smooth' })
 }
+
+onMounted(() => {
+  loadRestaurants()
+})
 
 useHead({
   title: 'Saveur de Chine à Paris — Testé par Shuya',

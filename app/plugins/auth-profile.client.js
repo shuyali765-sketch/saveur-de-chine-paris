@@ -4,9 +4,11 @@ export default defineNuxtPlugin({
   async setup() {
     const supabase = useSupabaseClient()
     const userStore = useUserStore()
+    const { loadFavorites } = useFavorites()
 
     async function syncProfile() {
       await loadUserProfile()
+      await loadFavorites()
       userStore.setAuthReady(true)
     }
 

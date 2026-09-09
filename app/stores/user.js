@@ -8,16 +8,11 @@ export const useUserStore = defineStore('user', {
       email: '',
       foodPreference: '',
     },
-    favoriteNames: [],
   }),
 
   getters: {
     hasProfile: (state) => {
       return state.profile.firstName !== ''
-    },
-
-    isFavorite: (state) => {
-      return (name) => state.favoriteNames.includes(name)
     },
   },
 
@@ -42,20 +37,5 @@ export const useUserStore = defineStore('user', {
     logout() {
       this.clearAuthProfile()
     },
-
-    toggleFavorite(name) {
-      const index = this.favoriteNames.indexOf(name)
-
-      if (index === -1) {
-        this.favoriteNames.push(name)
-      }
-      else {
-        this.favoriteNames.splice(index, 1)
-      }
-    },
-  },
-
-  persist: {
-    pick: ['favoriteNames'],
   },
 })

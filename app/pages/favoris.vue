@@ -7,13 +7,42 @@
       Les adresses que vous avez marquées d’un cœur.
     </p>
 
+    <p
+      v-if="!isAuthReady || isLoading"
+      class="mt-8 text-sm text-muted-foreground"
+    >
+      Chargement…
+    </p>
+
+    <p
+      v-else-if="!isLoggedIn"
+      class="mt-8 text-sm text-muted-foreground"
+    >
+      Connectez-vous pour voir vos restaurants favoris.
+      <NuxtLink
+        to="/login"
+        class="font-medium text-primary underline-offset-4 hover:underline"
+      >
+        Se connecter
+      </NuxtLink>
+    </p>
+
+    <p
+      v-else-if="errorMessage"
+      class="mt-8 text-sm text-destructive"
+      role="alert"
+    >
+      {{ errorMessage }}
+    </p>
+
     <div
-      v-if="favoriteRestaurants.length > 0"
+      v-else-if="favoriteRestaurants.length > 0"
       class="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3"
     >
       <RestaurantCard
         v-for="restaurant in favoriteRestaurants"
-        :key="restaurant.name"
+        :key="restaurant.id"
+        :id="restaurant.id"
         :name="restaurant.name"
         :cuisine="restaurant.cuisine"
         :neighborhood="restaurant.neighborhood"
@@ -27,16 +56,26 @@
       v-else
       class="mt-8 text-sm text-muted-foreground"
     >
-      Vous n’avez pas encore de restaurant favori. Cliquez sur le cœur à côté du nom pour en ajouter.
+      Vous n’avez pas encore de restaurant favori.
     </p>
   </div>
 </template>
 
 <script setup>
-const userStore = useUserStore()
+const { isLoggedIn, isAuthReady } = useAuthSession()
+const {
+  favoriteRestaurants,
+  isLoading,
+  errorMessage,
+  loadFavorites,
+} = useFavorites()
 
-const favoriteRestaurants = computed(() => {
-  return restaurants.filter((restaurant) => userStore.isFavorite(restaurant.name))
+onMounted(() => {
+  loadFavorites()
+})
+
+watch(isLoggedIn, () => {
+  loadFavorites()
 })
 
 useHead({
