@@ -92,6 +92,12 @@ export function useFavorites() {
       return { ok: false }
     }
 
+    const looksLikeUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(restaurantId))
+    if (!looksLikeUuid) {
+      errorMessage.value = 'Ce restaurant n’est pas encore enregistré dans la table restaurants de Supabase.'
+      return { ok: false }
+    }
+
     pendingId.value = restaurantId
 
     if (isFavorite(restaurantId)) {
@@ -125,6 +131,11 @@ export function useFavorites() {
       if (error.code === '23505') {
         await loadFavorites()
         return { ok: true }
+      }
+
+      if ((error.message || '').includes('invalid input syntax for type uuid')) {
+        errorMessage.value = 'Ce restaurant n’est pas encore enregistré dans la table restaurants de Supabase.'
+        return { ok: false }
       }
 
       errorMessage.value = error.message || 'Impossible d’ajouter ce favori.'
