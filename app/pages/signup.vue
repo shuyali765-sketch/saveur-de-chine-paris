@@ -257,7 +257,7 @@ async function handleSignup() {
     return
   }
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email: email.value.trim(),
     password: password.value,
     options: {
@@ -266,6 +266,14 @@ async function handleSignup() {
       },
     },
   })
+
+  if (!error && data.user?.id) {
+    await supabase.from('user_profiles').upsert({
+      id: data.user.id,
+      first_name: firstName.value.trim(),
+      email: email.value.trim(),
+    })
+  }
 
   isLoading.value = false
 

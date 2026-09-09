@@ -28,7 +28,7 @@ export async function loadUserProfile() {
   }
 
   const { data, error } = await supabase
-    .from('user_profile')
+    .from('user_profiles')
     .select('first_name, email')
     .eq('id', userId)
     .maybeSingle()
