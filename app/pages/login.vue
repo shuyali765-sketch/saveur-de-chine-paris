@@ -93,8 +93,6 @@ useHead({
   title: 'Se connecter — Saveur de Chine à Paris',
 })
 
-const supabase = useSupabaseClient()
-
 const email = ref('')
 const password = ref('')
 const successMessage = ref('')
@@ -149,6 +147,8 @@ async function handleLogin() {
   }
 
   isLoading.value = true
+
+  const supabase = useSupabaseClient()
 
   if (!supabase) {
     isLoading.value = false

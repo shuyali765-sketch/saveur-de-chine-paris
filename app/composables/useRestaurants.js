@@ -1,3 +1,5 @@
+import { restaurants as localRestaurantData } from '~/utils/restaurants'
+
 export function getRestaurantId(row) {
   if (!row || typeof row !== 'object') {
     return null
@@ -37,69 +39,86 @@ export function mapRestaurant(row) {
   }
 }
 
+function localRestaurantCards() {
+  return localRestaurantData.map((item) => ({
+    id: item.id || item.name,
+    name: item.name,
+    cuisine: item.cuisine,
+    neighborhood: item.neighborhood,
+    review: item.review,
+    image: item.image,
+    alt: item.alt,
+  }))
+}
+
 export function useRestaurants() {
-  const supabase = useSupabaseClient()
-  const restaurants = useState('restaurants-list', () => [])
+  const restaurantList = useState('restaurants-list', () => [])
   const isLoading = useState('restaurants-loading', () => false)
   const errorMessage = useState('restaurants-error', () => '')
 
   async function loadRestaurants() {
-    if (!supabase) {
-      errorMessage.value = 'Connexion à Supabase indisponible.'
-      restaurants.value = []
-      return
-    }
-
+    const supabase = useSupabaseClient()
     isLoading.value = true
     errorMessage.value = ''
 
-    const { data, error } = await supabase
-      .from('restaurants')
-      .select('*')
+    if (supabase) {
+      const { data, error } = await supabase
+        .from('restaurants')
+        .select('*')
 
-    isLoading.value = false
+      if (!error) {
+        const mapped = (data || [])
+          .map(mapRestaurant)
+          .filter(Boolean)
+          .sort((a, b) => a.name.localeCompare(b.name, 'fr'))
 
-    if (error) {
-      errorMessage.value = error.message || 'Impossible de charger les restaurants.'
-      restaurants.value = []
-      return
+        if (mapped.length > 0) {
+          restaurantList.value = mapped
+          isLoading.value = false
+          return
+        }
+      }
     }
 
-    restaurants.value = (data || [])
-      .map(mapRestaurant)
-      .filter(Boolean)
-      .sort((a, b) => a.name.localeCompare(b.name, 'fr'))
+    restaurantList.value = localRestaurantCards()
+    isLoading.value = false
   }
 
   async function loadRestaurantById(id) {
-    if (!supabase || !id) {
+    if (!id) {
       return { restaurant: null, error: 'Restaurant introuvable.' }
     }
 
-    const cached = restaurants.value.find((item) => String(item.id) === String(id))
+    const cached = restaurantList.value.find((item) => String(item.id) === String(id))
     if (cached) {
       return { restaurant: cached, error: null }
     }
 
-    const { data, error } = await supabase
-      .from('restaurants')
-      .select('*')
+    const supabase = useSupabaseClient()
 
-    if (error) {
-      return { restaurant: null, error: error.message || 'Restaurant introuvable.' }
+    if (supabase) {
+      const { data, error } = await supabase
+        .from('restaurants')
+        .select('*')
+
+      if (!error) {
+        const row = (data || []).find((item) => String(getRestaurantId(item)) === String(id))
+        if (row) {
+          return { restaurant: mapRestaurant(row), error: null }
+        }
+      }
     }
 
-    const row = (data || []).find((item) => String(getRestaurantId(item)) === String(id))
-
-    if (!row) {
-      return { restaurant: null, error: 'Restaurant introuvable.' }
+    const local = localRestaurantCards().find((item) => String(item.id) === String(id))
+    if (local) {
+      return { restaurant: local, error: null }
     }
 
-    return { restaurant: mapRestaurant(row), error: null }
+    return { restaurant: null, error: 'Restaurant introuvable.' }
   }
 
   return {
-    restaurants,
+    restaurants: restaurantList,
     isLoading,
     errorMessage,
     loadRestaurants,

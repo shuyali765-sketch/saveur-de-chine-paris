@@ -161,8 +161,6 @@ useHead({
   title: 'S’inscrire — Saveur de Chine à Paris',
 })
 
-const supabase = useSupabaseClient()
-
 const firstName = ref('')
 const email = ref('')
 const password = ref('')
@@ -250,6 +248,8 @@ async function handleSignup() {
   }
 
   isLoading.value = true
+
+  const supabase = useSupabaseClient()
 
   if (!supabase) {
     isLoading.value = false

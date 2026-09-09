@@ -11,11 +11,7 @@ export default defineNuxtPlugin({
 
     if (!/^https?:\/\//i.test(url) || !key) {
       user.value = null
-      return {
-        provide: {
-          supabase: null,
-        },
-      }
+      return
     }
 
     const client = createClient(url, key)

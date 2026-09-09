@@ -1,5 +1,4 @@
 export function useFavorites() {
-  const supabase = useSupabaseClient()
   const { userId, isLoggedIn } = useAuthSession()
   const favoriteIds = useState('favorite-ids', () => [])
   const favoriteRestaurants = useState('favorite-restaurants', () => [])
@@ -13,6 +12,7 @@ export function useFavorites() {
   }
 
   async function loadFavorites() {
+    const supabase = useSupabaseClient()
     loginHint.value = ''
 
     if (!supabase || !isLoggedIn.value) {
@@ -78,6 +78,7 @@ export function useFavorites() {
   }
 
   async function toggleFavorite(restaurantId) {
+    const supabase = useSupabaseClient()
     loginHint.value = ''
     errorMessage.value = ''
 

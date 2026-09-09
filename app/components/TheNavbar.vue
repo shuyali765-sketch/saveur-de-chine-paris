@@ -100,7 +100,6 @@
 const route = useRoute()
 const userStore = useUserStore()
 const { isLoggedIn } = useAuthSession()
-const supabase = useSupabaseClient()
 const isDark = useDark()
 const toggleDark = useToggle(isDark)
 const isLoggingOut = ref(false)
@@ -111,6 +110,7 @@ async function handleLogout() {
     }
 
     isLoggingOut.value = true
+    const supabase = useSupabaseClient()
 
     if (supabase) {
         const { error } = await supabase.auth.signOut()

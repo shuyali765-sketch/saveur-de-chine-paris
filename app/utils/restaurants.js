@@ -1,5 +1,6 @@
 export const restaurants = [
   {
+    id: 'Le Bourgeon 花杞厨',
     name: 'Le Bourgeon 花杞厨',
     cuisine: 'Cuisine du Yunnan',
     neighborhood: '3e arrondissement',
@@ -8,6 +9,7 @@ export const restaurants = [
     alt: 'Nouilles de riz traversant le pont du restaurant Le Bourgeon 花杞厨, dans le 3e arrondissement',
   },
   {
+    id: 'Le Panier de Dim Sum',
     name: 'Le Panier de Dim Sum',
     cuisine: 'Cuisine cantonaise',
     neighborhood: 'Opéra, 9e arrondissement',
@@ -16,6 +18,7 @@ export const restaurants = [
     alt: 'Panier de dim sum cantonais servis à Paris',
   },
   {
+    id: 'Table de Shanghai',
     name: 'Table de Shanghai',
     cuisine: 'Cuisine de Shanghai',
     neighborhood: 'Belleville, 20e arrondissement',

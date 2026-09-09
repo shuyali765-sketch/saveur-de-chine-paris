@@ -11,7 +11,6 @@ function formatCommentDate(value) {
 }
 
 export function useComments(restaurantId) {
-  const supabase = useSupabaseClient()
   const { userId, isLoggedIn } = useAuthSession()
   const comments = ref([])
   const isLoading = ref(false)
@@ -19,6 +18,7 @@ export function useComments(restaurantId) {
   const errorMessage = ref('')
 
   async function loadComments() {
+    const supabase = useSupabaseClient()
     const id = unref(restaurantId)
 
     if (!supabase || !id) {
@@ -68,6 +68,7 @@ export function useComments(restaurantId) {
   }
 
   async function addComment(rawContent) {
+    const supabase = useSupabaseClient()
     errorMessage.value = ''
     const content = String(rawContent || '').trim()
 
@@ -108,6 +109,7 @@ export function useComments(restaurantId) {
   }
 
   async function updateComment(commentId, rawContent) {
+    const supabase = useSupabaseClient()
     errorMessage.value = ''
     const content = String(rawContent || '').trim()
 
@@ -144,6 +146,7 @@ export function useComments(restaurantId) {
   }
 
   async function deleteComment(commentId) {
+    const supabase = useSupabaseClient()
     errorMessage.value = ''
 
     if (!isLoggedIn.value || !supabase) {
