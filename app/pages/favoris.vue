@@ -8,7 +8,32 @@
     </p>
 
     <p
-      v-if="!isAuthReady || isLoading"
+      v-if="errorMessage"
+      class="mt-8 text-sm text-destructive"
+      role="alert"
+    >
+      {{ errorMessage }}
+    </p>
+
+    <div
+      v-if="favoriteRestaurants.length > 0"
+      class="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3"
+    >
+      <RestaurantCard
+        v-for="restaurant in favoriteRestaurants"
+        :key="restaurant.id"
+        :id="restaurant.id"
+        :name="restaurant.name"
+        :cuisine="restaurant.cuisine"
+        :neighborhood="restaurant.neighborhood"
+        :review="restaurant.review"
+        :image="restaurant.image"
+        :alt="restaurant.alt"
+      />
+    </div>
+
+    <p
+      v-else-if="!isAuthReady || isLoading"
       class="mt-8 text-sm text-muted-foreground"
     >
       Chargement…
@@ -28,31 +53,6 @@
     </p>
 
     <p
-      v-else-if="errorMessage"
-      class="mt-8 text-sm text-destructive"
-      role="alert"
-    >
-      {{ errorMessage }}
-    </p>
-
-    <div
-      v-else-if="favoriteRestaurants.length > 0"
-      class="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3"
-    >
-      <RestaurantCard
-        v-for="restaurant in favoriteRestaurants"
-        :key="restaurant.id"
-        :id="restaurant.id"
-        :name="restaurant.name"
-        :cuisine="restaurant.cuisine"
-        :neighborhood="restaurant.neighborhood"
-        :review="restaurant.review"
-        :image="restaurant.image"
-        :alt="restaurant.alt"
-      />
-    </div>
-
-    <p
       v-else
       class="mt-8 text-sm text-muted-foreground"
     >
@@ -70,13 +70,15 @@ const {
   loadFavorites,
 } = useFavorites()
 
-onMounted(() => {
-  loadFavorites()
-})
-
-watch(isLoggedIn, () => {
-  loadFavorites()
-})
+watch(
+  [isAuthReady, isLoggedIn],
+  ([ready, loggedIn]) => {
+    if (ready && loggedIn) {
+      loadFavorites()
+    }
+  },
+  { immediate: true },
+)
 
 useHead({
   title: 'Mes favoris — Saveur de Chine à Paris',

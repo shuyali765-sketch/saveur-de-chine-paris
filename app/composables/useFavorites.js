@@ -18,63 +18,60 @@ export function useFavorites() {
     if (!supabase || !isLoggedIn.value) {
       favoriteIds.value = []
       favoriteRestaurants.value = []
+      isLoading.value = false
       return
     }
 
     isLoading.value = true
     errorMessage.value = ''
 
-    let { data, error } = await supabase
-      .from('user_favori')
-      .select('restaurant_id, restaurants(*)')
-      .eq('user_id', userId.value)
-      .order('created_at', { ascending: false })
-
-    if (error) {
-      const fallback = await supabase
+    try {
+      const { data: favs, error } = await supabase
         .from('user_favori')
-        .select('restaurant_id')
+        .select('restaurant_id, created_at')
         .eq('user_id', userId.value)
         .order('created_at', { ascending: false })
 
-      data = fallback.data
-      error = fallback.error
-
-      if (!error && data?.length) {
-        const ids = data.map((row) => row.restaurant_id)
-        const { data: restaurantRows } = await supabase
-          .from('restaurants')
-          .select('*')
-
-        const byId = {}
-        for (const row of restaurantRows || []) {
-          const restaurantId = getRestaurantId(row)
-          if (restaurantId != null) {
-            byId[String(restaurantId)] = row
-          }
-        }
-
-        data = data.map((row) => ({
-          restaurant_id: row.restaurant_id,
-          restaurants: byId[String(row.restaurant_id)] || null,
-        }))
+      if (error) {
+        throw error
       }
+
+      const ids = (favs || []).map((row) => row.restaurant_id).filter(Boolean)
+      favoriteIds.value = ids
+
+      if (ids.length === 0) {
+        favoriteRestaurants.value = []
+        return
+      }
+
+      const { data: restaurantRows, error: restaurantError } = await supabase
+        .from('restaurants')
+        .select('*')
+
+      if (restaurantError) {
+        throw restaurantError
+      }
+
+      const byId = {}
+      for (const row of restaurantRows || []) {
+        const mapped = mapRestaurant(row)
+        if (mapped?.id != null) {
+          byId[String(mapped.id)] = mapped
+        }
+      }
+
+      favoriteRestaurants.value = ids
+        .map((id) => byId[String(id)])
+        .filter(Boolean)
     }
-
-    isLoading.value = false
-
-    if (error) {
-      errorMessage.value = error.message || 'Impossible de charger vos favoris.'
+    catch (error) {
+      errorMessage.value = error?.message || 'Impossible de charger vos favoris.'
       favoriteIds.value = []
       favoriteRestaurants.value = []
-      return
     }
-
-    const rows = data || []
-    favoriteIds.value = rows.map((row) => row.restaurant_id)
-    favoriteRestaurants.value = rows
-      .map((row) => mapRestaurant(row.restaurants))
-      .filter(Boolean)
+    finally {
+      isLoading.value = false
+    }
   }
 
   async function toggleFavorite(restaurantId) {
