@@ -3,7 +3,7 @@ export const restaurants = [
     id: 'Le Bourgeon 花杞厨',
     name: 'Le Bourgeon 花杞厨',
     cuisine: 'Cuisine du Yunnan',
-    neighborhood: '3e arrondissement',
+    neighborhood: 'Châtelet, 3e arrondissement',
     review: 'Les nouilles de riz « traversant le pont » sont incontournables. Le bouillon est particulièrement frais et savoureux.',
     image: '/images/huaqichu.jpg',
     alt: 'Nouilles de riz traversant le pont du restaurant Le Bourgeon 花杞厨, dans le 3e arrondissement',

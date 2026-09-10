@@ -16,7 +16,7 @@
         <form
           class="mt-8 flex w-full max-w-xl flex-col gap-3 rounded-3xl bg-secondary px-4 py-3 sm:flex-row sm:items-center sm:rounded-full sm:px-5"
           role="search"
-          @submit.prevent="scrollToResults"
+          @submit.prevent="goToSearch"
         >
           <label class="sr-only" for="home-search">
             Rechercher un restaurant, une cuisine ou un quartier
@@ -59,7 +59,7 @@
         class="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3"
       >
         <RestaurantCard
-          v-for="restaurant in filteredRestaurants"
+          v-for="restaurant in restaurants"
           :key="restaurant.id"
           :id="restaurant.id"
           :name="restaurant.name"
@@ -76,12 +76,6 @@
       >
         Aucun restaurant n’est encore enregistré dans Supabase.
       </p>
-      <p
-        v-else-if="!isLoading && !errorMessage && filteredRestaurants.length === 0"
-        class="mt-6 text-sm text-muted-foreground"
-      >
-        Aucune adresse ne correspond à cette recherche.
-      </p>
     </section>
   </div>
 </template>
@@ -92,24 +86,25 @@ import { Button } from '@/components/ui/button'
 const searchQuery = ref('')
 const { restaurants, isLoading, errorMessage, loadRestaurants } = useRestaurants()
 
-const filteredRestaurants = computed(() => {
-  const query = searchQuery.value.trim().toLowerCase()
+function goToSearch() {
+  const q = searchQuery.value.trim()
 
-  if (!query) {
-    return restaurants.value
+  if (!q) {
+    document.getElementById('adresses')?.scrollIntoView({ behavior: 'smooth' })
+    return
   }
 
-  return restaurants.value.filter((restaurant) => {
-    const haystack = `${restaurant.name} ${restaurant.cuisine} ${restaurant.neighborhood}`.toLowerCase()
-    return haystack.includes(query)
+  navigateTo({
+    path: '/recherche',
+    query: { q },
   })
-})
-
-function scrollToResults() {
-  document.getElementById('adresses')?.scrollIntoView({ behavior: 'smooth' })
 }
 
 onMounted(() => {
+  loadRestaurants()
+})
+
+onActivated(() => {
   loadRestaurants()
 })
 

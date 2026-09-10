@@ -10,8 +10,8 @@ const props = defineProps({
     required: true,
   },
   cuisine: {
-    type: String,
-    required: true,
+    type: [String, Array],
+    default: '',
   },
   neighborhood: {
     type: String,
@@ -29,6 +29,10 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  showDetailsLink: {
+    type: Boolean,
+    default: true,
+  },
 })
 
 const {
@@ -44,6 +48,13 @@ const localError = ref('')
 
 const filled = computed(() => isFavorite(props.id))
 const isPending = computed(() => String(pendingId.value) === String(props.id))
+const cuisineLabel = computed(() => {
+  if (Array.isArray(props.cuisine)) {
+    return props.cuisine.filter(Boolean).join(' · ')
+  }
+
+  return props.cuisine || ''
+})
 
 onMounted(() => {
   loadFavorites()
@@ -79,7 +90,7 @@ async function handleFavoriteClick() {
     </NuxtLink>
     <div class="flex flex-1 flex-col gap-2 p-4">
       <p class="text-xs font-medium tracking-wide text-gold uppercase">
-        {{ cuisine }}
+        {{ cuisineLabel }}
       </p>
       <div class="flex items-start justify-between gap-2">
         <h3 class="min-w-0 font-serif text-xl font-semibold text-foreground">
@@ -137,6 +148,7 @@ async function handleFavoriteClick() {
         {{ localError }}
       </p>
       <NuxtLink
+        v-if="showDetailsLink"
         :to="`/restaurants/${id}`"
         class="mt-auto pt-3 text-sm font-medium text-primary underline-offset-4 hover:underline"
       >
