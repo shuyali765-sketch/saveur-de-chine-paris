@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 export const useUserStore = defineStore('user', {
   state: () => ({
     authReady: false,
+    profileError: '',
     profile: {
       firstName: '',
       email: '',
@@ -25,9 +26,15 @@ export const useUserStore = defineStore('user', {
       }
     },
 
+    setProfileError(message) {
+      this.profileError = message || ''
+    },
+
     clearAuthProfile() {
       this.profile.firstName = ''
       this.profile.email = ''
+      this.profile.foodPreference = ''
+      this.profileError = ''
     },
 
     setAuthReady(value) {

@@ -47,7 +47,7 @@ const localHint = ref('')
 const localError = ref('')
 
 const filled = computed(() => isFavorite(props.id))
-const isPending = computed(() => String(pendingId.value) === String(props.id))
+const isBusy = computed(() => pendingId.value != null)
 const cuisineLabel = computed(() => {
   if (Array.isArray(props.cuisine)) {
     return props.cuisine.filter(Boolean).join(' · ')
@@ -61,6 +61,10 @@ onMounted(() => {
 })
 
 async function handleFavoriteClick() {
+  if (isBusy.value) {
+    return
+  }
+
   localHint.value = ''
   localError.value = ''
   const result = await toggleFavorite(props.id)
@@ -71,7 +75,7 @@ async function handleFavoriteClick() {
   }
 
   if (!result?.ok) {
-    localError.value = errorMessage.value || 'Impossible de mettre à jour ce favori.'
+    localError.value = errorMessage.value || 'Impossible de mettre à jour ce favori. Veuillez réessayer.'
   }
 }
 </script>
@@ -106,7 +110,7 @@ async function handleFavoriteClick() {
           class="mt-0.5 shrink-0 rounded-full p-1 text-primary transition-colors hover:bg-secondary disabled:opacity-60"
           :aria-pressed="filled"
           :aria-label="filled ? `Retirer ${name} des favoris` : `Ajouter ${name} aux favoris`"
-          :disabled="isPending"
+          :disabled="isBusy"
           @click.stop="handleFavoriteClick"
         >
           <HeartFilledIcon

@@ -1,5 +1,3 @@
-import { restaurants as localRestaurantData } from '~/utils/restaurants'
-
 const quartierByRestaurantName = {
   'Le Bourgeon 花杞厨': 'Châtelet',
 }
@@ -43,7 +41,7 @@ export function getRestaurantId(row) {
     return null
   }
 
-  const preferredKeys = ['id', 'restaurant_id', 'id_restaurant', 'uuid', 'nom', 'name', 'titre', 'title']
+  const preferredKeys = ['restaurant_id', 'id', 'id_restaurant', 'uuid']
 
   for (const key of preferredKeys) {
     if (row[key] != null && row[key] !== '') {
@@ -52,14 +50,6 @@ export function getRestaurantId(row) {
   }
 
   return null
-}
-
-export function formatCuisineLabel(cuisine) {
-  if (Array.isArray(cuisine)) {
-    return cuisine.filter(Boolean).join(' · ')
-  }
-
-  return cuisine || ''
 }
 
 function toList(value) {
@@ -122,24 +112,25 @@ function tokenMatchesWord(token, word) {
   return frenchStem(word) === frenchStem(token)
 }
 
-export function filterRestaurantsByQuery(restaurants, query) {
+export function restaurantMatchesSearchQuery(row, query) {
   const tokens = toSearchWords(query)
 
   if (tokens.length === 0) {
-    return restaurants
+    return true
   }
 
-  return restaurants.filter((restaurant) => {
-    const words = toSearchWords([
-      restaurant.name,
-      restaurant.cuisine,
-      restaurant.neighborhood,
-      restaurant.quartier,
-      restaurant.review,
-    ])
+  const cuisine = Array.isArray(row.cuisine)
+    ? row.cuisine
+    : (row.cuisine || '')
 
-    return tokens.every((token) => words.some((word) => tokenMatchesWord(token, word)))
-  })
+  const words = toSearchWords([
+    row.name,
+    row.arrondissement,
+    row.adresse,
+    cuisine,
+  ])
+
+  return tokens.every((token) => words.some((word) => tokenMatchesWord(token, word)))
 }
 
 export function mapRestaurant(row) {
@@ -157,7 +148,7 @@ export function mapRestaurant(row) {
   return {
     id,
     name,
-    cuisine: formatCuisineLabel(row.cuisine || row.category || row.type_cuisine || ''),
+    cuisine: Array.isArray(row.cuisine) ? row.cuisine : (row.cuisine || ''),
     neighborhood: formatNeighborhoodLabel(row),
     quartier: textValue(row.quartier) || quartierByRestaurantName[name] || '',
     arrondissement: textValue(row.arrondissement),
@@ -172,23 +163,35 @@ export function mapRestaurant(row) {
   }
 }
 
-function localRestaurantCards() {
-  return localRestaurantData.map((item) => ({
-    id: item.id || item.name,
-    name: item.name,
-    cuisine: formatCuisineLabel(item.cuisine),
-    neighborhood: item.neighborhood,
-    quartier: item.quartier || '',
-    arrondissement: item.arrondissement || '',
-    address: item.address || item.adresse || '',
-    priceRange: item.priceRange || '',
-    rating: item.rating == null ? '' : String(item.rating),
-    googleMapsUrl: item.googleMapsUrl || '',
-    recommendedDishes: toList(item.recommendedDishes),
-    review: item.review,
-    image: item.image,
-    alt: item.alt,
-  }))
+async function fetchRestaurantRows() {
+  const supabase = useSupabaseClient()
+
+  if (!supabase) {
+    return {
+      rows: [],
+      error: 'Impossible de joindre la base de données. Veuillez réessayer plus tard.',
+    }
+  }
+
+  const { data, error } = await supabase
+    .from('restaurants')
+    .select('*')
+
+  if (error) {
+    return {
+      rows: [],
+      error: 'Impossible de charger les restaurants. Veuillez réessayer plus tard.',
+    }
+  }
+
+  return {
+    rows: data || [],
+    error: null,
+  }
+}
+
+function sortRestaurants(list) {
+  return list.sort((a, b) => a.name.localeCompare(b.name, 'fr'))
 }
 
 export function useRestaurants() {
@@ -197,32 +200,29 @@ export function useRestaurants() {
   const errorMessage = useState('restaurants-error', () => '')
 
   async function loadRestaurants() {
-    const supabase = useSupabaseClient()
     isLoading.value = true
     errorMessage.value = ''
     restaurantList.value = []
 
-    if (supabase) {
-      const { data, error } = await supabase
-        .from('restaurants')
-        .select('*')
+    try {
+      const { rows, error } = await fetchRestaurantRows()
 
-      if (!error) {
-        const mapped = (data || [])
-          .map(mapRestaurant)
-          .filter(Boolean)
-          .sort((a, b) => a.name.localeCompare(b.name, 'fr'))
-
-        if (mapped.length > 0) {
-          restaurantList.value = mapped
-          isLoading.value = false
-          return
-        }
+      if (error) {
+        errorMessage.value = error
+        return
       }
-    }
 
-    restaurantList.value = localRestaurantCards()
-    isLoading.value = false
+      restaurantList.value = sortRestaurants(
+        rows.map(mapRestaurant).filter(Boolean),
+      )
+    }
+    catch {
+      errorMessage.value = 'Impossible de charger les restaurants. Veuillez réessayer plus tard.'
+      restaurantList.value = []
+    }
+    finally {
+      isLoading.value = false
+    }
   }
 
   async function loadRestaurantById(id) {
@@ -230,32 +230,57 @@ export function useRestaurants() {
       return { restaurant: null, error: 'Restaurant introuvable.' }
     }
 
-    const supabase = useSupabaseClient()
+    try {
+      const { rows, error } = await fetchRestaurantRows()
 
-    if (supabase) {
-      const { data, error } = await supabase
-        .from('restaurants')
-        .select('*')
-
-      if (!error) {
-        const row = (data || []).find((item) => String(getRestaurantId(item)) === String(id))
-        if (row) {
-          return { restaurant: mapRestaurant(row), error: null }
+      if (error) {
+        return {
+          restaurant: null,
+          error: error.includes('joindre')
+            ? error
+            : 'Impossible de charger le restaurant. Veuillez réessayer plus tard.',
         }
       }
-    }
 
-    const cached = restaurantList.value.find((item) => String(item.id) === String(id))
-    if (cached) {
-      return { restaurant: cached, error: null }
-    }
+      const row = rows.find((item) => String(getRestaurantId(item)) === String(id))
+      if (row) {
+        return { restaurant: mapRestaurant(row), error: null }
+      }
 
-    const local = localRestaurantCards().find((item) => String(item.id) === String(id))
-    if (local) {
-      return { restaurant: local, error: null }
+      return { restaurant: null, error: 'Restaurant introuvable.' }
     }
+    catch {
+      return { restaurant: null, error: 'Impossible de charger le restaurant. Veuillez réessayer plus tard.' }
+    }
+  }
 
-    return { restaurant: null, error: 'Restaurant introuvable.' }
+  async function searchRestaurants(query) {
+    try {
+      const { rows, error } = await fetchRestaurantRows()
+
+      if (error) {
+        return {
+          restaurants: [],
+          error,
+        }
+      }
+
+      return {
+        restaurants: sortRestaurants(
+          rows
+            .filter((row) => restaurantMatchesSearchQuery(row, query))
+            .map(mapRestaurant)
+            .filter(Boolean),
+        ),
+        error: null,
+      }
+    }
+    catch {
+      return {
+        restaurants: [],
+        error: 'Impossible de charger les restaurants. Veuillez réessayer plus tard.',
+      }
+    }
   }
 
   return {
@@ -264,5 +289,6 @@ export function useRestaurants() {
     errorMessage,
     loadRestaurants,
     loadRestaurantById,
+    searchRestaurants,
   }
 }

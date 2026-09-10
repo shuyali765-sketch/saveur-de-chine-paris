@@ -7,7 +7,7 @@ export default defineNuxtPlugin({
     const { loadFavorites } = useFavorites()
 
     async function syncProfile() {
-      await loadUserProfile()
+      await ensureUserProfile()
       await loadFavorites()
       userStore.setAuthReady(true)
     }

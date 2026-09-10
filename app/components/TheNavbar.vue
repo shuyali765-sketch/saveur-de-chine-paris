@@ -22,11 +22,8 @@
                 </template>
 
                 <template v-else-if="isLoggedIn">
-                    <span
-                        v-if="userStore.hasProfile"
-                        class="whitespace-nowrap text-foreground"
-                    >
-                        Bonjour, {{ userStore.profile.firstName }}
+                    <span class="whitespace-nowrap text-foreground">
+                        Bonjour<span v-if="userStore.profile.firstName">, {{ userStore.profile.firstName }}</span>
                     </span>
                     <NuxtLink
                         to="/favoris"
@@ -37,12 +34,19 @@
                     </NuxtLink>
                     <button
                         type="button"
-                        class="whitespace-nowrap rounded-full border border-border px-3 py-1 text-sm transition-colors hover:bg-accent"
+                        class="whitespace-nowrap rounded-full border border-border px-3 py-1 text-sm transition-colors hover:bg-accent disabled:opacity-60"
                         :disabled="isLoggingOut"
                         @click="handleLogout"
                     >
-                        Se déconnecter
+                        {{ isLoggingOut ? 'Déconnexion…' : 'Se déconnecter' }}
                     </button>
+                    <p
+                        v-if="userStore.profileError"
+                        class="basis-full text-right text-xs text-destructive"
+                        role="alert"
+                    >
+                        {{ userStore.profileError }}
+                    </p>
                 </template>
 
                 <template v-else>
@@ -112,21 +116,16 @@ async function handleLogout() {
     isLoggingOut.value = true
     const supabase = useSupabaseClient()
 
-    if (supabase) {
-        const { error } = await supabase.auth.signOut()
-        userStore.clearAuthProfile()
-        isLoggingOut.value = false
-
-        if (error) {
-            return
+    try {
+        if (supabase) {
+            await supabase.auth.signOut()
         }
-    }
-    else {
         userStore.clearAuthProfile()
+        await navigateTo('/login')
+    }
+    finally {
         isLoggingOut.value = false
     }
-
-    await navigateTo('/login')
 }
 </script>
 

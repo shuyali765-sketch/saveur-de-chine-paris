@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 
+/** @typedef {import('~/types/database.types').Database} Database */
+
 export default defineNuxtPlugin({
   name: 'supabase',
   enforce: 'pre',
@@ -14,7 +16,14 @@ export default defineNuxtPlugin({
       return
     }
 
-    const client = createClient(url, key)
+    /** @type {import('@supabase/supabase-js').SupabaseClient<Database>} */
+    const client = createClient(url, key, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
+    })
 
     try {
       const { data } = await client.auth.getSession()

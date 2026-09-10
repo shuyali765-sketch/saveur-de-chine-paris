@@ -31,8 +31,9 @@
             type="email"
             name="email"
             autocomplete="email"
+            :disabled="isLoading"
             :aria-invalid="Boolean(errors.email)"
-            :class="inputClass(errors.email)"
+            :class="authInputClass(errors.email)"
           >
           <p v-if="errors.email" class="text-sm text-destructive" role="alert">
             {{ errors.email }}
@@ -47,8 +48,9 @@
             type="password"
             name="password"
             autocomplete="current-password"
+            :disabled="isLoading"
             :aria-invalid="Boolean(errors.password)"
-            :class="inputClass(errors.password)"
+            :class="authInputClass(errors.password)"
           >
           <p v-if="errors.password" class="text-sm text-destructive" role="alert">
             {{ errors.password }}
@@ -108,20 +110,6 @@ const errors = ref({
   password: '',
 })
 
-function inputClass(errorMessage) {
-  const base = 'h-10 w-full rounded-md border bg-background px-3 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring'
-
-  if (errorMessage) {
-    return `${base} border-destructive`
-  }
-
-  return `${base} border-input`
-}
-
-function isValidEmail(value) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
-}
-
 async function handleLogin() {
   if (isLoading.value) {
     return
@@ -152,35 +140,22 @@ async function handleLogin() {
 
   isLoading.value = true
 
-  const supabase = useSupabaseClient()
+  try {
+    const result = await signInWithEmail(email.value.trim(), password.value)
 
-  if (!supabase) {
+    if (!result.ok) {
+      formError.value = result.error
+      return
+    }
+
+    successMessage.value = 'Connexion réussie.'
+    await navigateTo('/')
+  }
+  catch {
+    formError.value = 'Une erreur est survenue. Veuillez réessayer.'
+  }
+  finally {
     isLoading.value = false
-    formError.value = 'Impossible de joindre la base de données. Ce n’est pas un problème de mot de passe.'
-    return
   }
-
-  const { error: signInError } = await supabase.auth.signInWithPassword({
-    email: email.value.trim(),
-    password: password.value,
-  })
-
-  if (signInError) {
-    isLoading.value = false
-    formError.value = supabaseAuthMessage(signInError)
-    return
-  }
-
-  const { profile, error: profileError } = await loadUserProfile()
-
-  isLoading.value = false
-
-  if (profileError || !profile) {
-    formError.value = 'Impossible de charger votre profil.'
-    return
-  }
-
-  successMessage.value = 'Connexion réussie.'
-  await navigateTo('/')
 }
 </script>

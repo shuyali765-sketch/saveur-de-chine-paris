@@ -15,8 +15,15 @@
       {{ errorMessage }}
     </p>
 
+    <p
+      v-if="!isAuthReady || (isLoading && favoriteRestaurants.length === 0)"
+      class="mt-8 text-sm text-muted-foreground"
+    >
+      Chargement…
+    </p>
+
     <div
-      v-if="favoriteRestaurants.length > 0"
+      v-else-if="favoriteRestaurants.length > 0"
       class="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3"
     >
       <RestaurantCard
@@ -33,13 +40,6 @@
     </div>
 
     <p
-      v-else-if="!isAuthReady || isLoading"
-      class="mt-8 text-sm text-muted-foreground"
-    >
-      Chargement…
-    </p>
-
-    <p
       v-else-if="!isLoggedIn"
       class="mt-8 text-sm text-muted-foreground"
     >
@@ -53,7 +53,7 @@
     </p>
 
     <p
-      v-else
+      v-else-if="!errorMessage"
       class="mt-8 text-sm text-muted-foreground"
     >
       Vous n’avez pas encore de restaurant favori.
@@ -69,6 +69,10 @@ const {
   errorMessage,
   loadFavorites,
 } = useFavorites()
+
+definePageMeta({
+  middleware: 'auth',
+})
 
 watch(
   [isAuthReady, isLoggedIn],

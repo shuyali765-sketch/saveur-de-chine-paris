@@ -55,7 +55,7 @@
         {{ errorMessage }}
       </p>
       <div
-        v-else
+        v-else-if="restaurants.length > 0"
         class="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3"
       >
         <RestaurantCard
@@ -71,10 +71,10 @@
         />
       </div>
       <p
-        v-if="!isLoading && !errorMessage && restaurants.length === 0"
-        class="mt-6 text-sm text-muted-foreground"
+        v-else
+        class="mt-8 text-sm text-muted-foreground"
       >
-        Aucun restaurant n’est encore enregistré dans Supabase.
+        Aucun restaurant n’est encore enregistré.
       </p>
     </section>
   </div>

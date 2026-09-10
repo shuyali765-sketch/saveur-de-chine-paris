@@ -32,6 +32,10 @@ watch(() => props.restaurantId, () => {
 })
 
 async function handlePublish() {
+  if (isSaving.value || !draft.value.trim()) {
+    return
+  }
+
   const result = await addComment(draft.value)
   if (result.ok) {
     draft.value = ''
@@ -49,6 +53,10 @@ function cancelEdit() {
 }
 
 async function handleSaveEdit() {
+  if (isSaving.value || !editDraft.value.trim()) {
+    return
+  }
+
   const result = await updateComment(editingId.value, editDraft.value)
   if (result.ok) {
     cancelEdit()
@@ -56,6 +64,10 @@ async function handleSaveEdit() {
 }
 
 async function handleDelete(comment) {
+  if (isSaving.value || !comment.isMine) {
+    return
+  }
+
   if (!window.confirm('Supprimer cet avis ?')) {
     return
   }
@@ -85,13 +97,14 @@ async function handleDelete(comment) {
         id="new-comment"
         v-model="draft"
         rows="4"
-        class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
+        :disabled="isSaving"
+        class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
         placeholder="Partagez votre expérience dans ce restaurant…"
       />
       <Button
         type="submit"
         class="rounded-full"
-        :disabled="isSaving"
+        :disabled="isSaving || !draft.trim()"
       >
         {{ isSaving ? 'Publication…' : 'Publier mon avis' }}
       </Button>
@@ -119,7 +132,7 @@ async function handleDelete(comment) {
     </p>
 
     <p
-      v-if="isLoading"
+      v-if="isLoading && comments.length === 0"
       class="mt-6 text-sm text-muted-foreground"
     >
       Chargement des avis…
@@ -147,23 +160,25 @@ async function handleDelete(comment) {
           <textarea
             v-model="editDraft"
             rows="3"
-            class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
+            :disabled="isSaving"
+            class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
           />
           <div class="flex flex-wrap gap-2">
             <Button
               type="button"
               class="rounded-full"
               size="sm"
-              :disabled="isSaving"
+              :disabled="isSaving || !editDraft.trim()"
               @click="handleSaveEdit"
             >
-              Enregistrer
+              {{ isSaving ? 'Enregistrement…' : 'Enregistrer' }}
             </Button>
             <Button
               type="button"
               variant="outline"
               class="rounded-full"
               size="sm"
+              :disabled="isSaving"
               @click="cancelEdit"
             >
               Annuler
@@ -184,14 +199,16 @@ async function handleDelete(comment) {
         >
           <button
             type="button"
-            class="text-sm font-medium text-primary underline-offset-4 hover:underline"
+            class="text-sm font-medium text-primary underline-offset-4 hover:underline disabled:opacity-60"
+            :disabled="isSaving"
             @click="startEdit(comment)"
           >
             Modifier
           </button>
           <button
             type="button"
-            class="text-sm font-medium text-destructive underline-offset-4 hover:underline"
+            class="text-sm font-medium text-destructive underline-offset-4 hover:underline disabled:opacity-60"
+            :disabled="isSaving"
             @click="handleDelete(comment)"
           >
             Supprimer
@@ -201,10 +218,10 @@ async function handleDelete(comment) {
     </ul>
 
     <p
-      v-else
+      v-else-if="!errorMessage"
       class="mt-6 text-sm text-muted-foreground"
     >
-      Aucun avis pour le moment. Soyez le premier à partager votre expérience.
+      Aucun avis pour le moment.
     </p>
   </section>
 </template>

@@ -32,8 +32,9 @@
             type="text"
             name="firstName"
             autocomplete="given-name"
+            :disabled="isLoading"
             :aria-invalid="Boolean(errors.firstName)"
-            :class="inputClass(errors.firstName)"
+            :class="authInputClass(errors.firstName)"
           >
           <p v-if="errors.firstName" class="text-sm text-destructive" role="alert">
             {{ errors.firstName }}
@@ -48,8 +49,9 @@
             type="email"
             name="email"
             autocomplete="email"
+            :disabled="isLoading"
             :aria-invalid="Boolean(errors.email)"
-            :class="inputClass(errors.email)"
+            :class="authInputClass(errors.email)"
           >
           <p v-if="errors.email" class="text-sm text-destructive" role="alert">
             {{ errors.email }}
@@ -64,8 +66,9 @@
             type="password"
             name="password"
             autocomplete="new-password"
+            :disabled="isLoading"
             :aria-invalid="Boolean(errors.password)"
-            :class="inputClass(errors.password)"
+            :class="authInputClass(errors.password)"
           >
           <p v-if="errors.password" class="text-sm text-destructive" role="alert">
             {{ errors.password }}
@@ -80,8 +83,9 @@
             type="password"
             name="confirmPassword"
             autocomplete="new-password"
+            :disabled="isLoading"
             :aria-invalid="Boolean(errors.confirmPassword)"
-            :class="inputClass(errors.confirmPassword)"
+            :class="authInputClass(errors.confirmPassword)"
           >
           <p v-if="errors.confirmPassword" class="text-sm text-destructive" role="alert">
             {{ errors.confirmPassword }}
@@ -96,8 +100,9 @@
             id="signup-preference"
             v-model="foodPreference"
             name="foodPreference"
+            :disabled="isLoading"
             :aria-invalid="Boolean(errors.foodPreference)"
-            :class="inputClass(errors.foodPreference)"
+            :class="authInputClass(errors.foodPreference)"
           >
             <option value="" disabled>
               Choisissez une cuisine
@@ -192,20 +197,6 @@ const previewMessage = computed(() => {
   return `Bonjour ${name} ! Nous mettrons en avant nos recommandations de ${foodPreference.value}.`
 })
 
-function inputClass(errorMessage) {
-  const base = 'h-10 w-full rounded-md border bg-background px-3 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring'
-
-  if (errorMessage) {
-    return `${base} border-destructive`
-  }
-
-  return `${base} border-input`
-}
-
-function isValidEmail(value) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
-}
-
 async function handleSignup() {
   if (isLoading.value) {
     return
@@ -249,39 +240,31 @@ async function handleSignup() {
 
   isLoading.value = true
 
-  const supabase = useSupabaseClient()
-
-  if (!supabase) {
-    isLoading.value = false
-    formError.value = 'Inscription indisponible. Réessayez plus tard.'
-    return
-  }
-
-  const { data, error } = await supabase.auth.signUp({
-    email: email.value.trim(),
-    password: password.value,
-    options: {
-      data: {
-        first_name: firstName.value.trim(),
-      },
-    },
-  })
-
-  if (!error && data.user?.id) {
-    await supabase.from('user_profiles').upsert({
-      id: data.user.id,
-      first_name: firstName.value.trim(),
+  try {
+    const result = await signUpWithEmail({
       email: email.value.trim(),
+      password: password.value,
+      firstName: firstName.value.trim(),
     })
+
+    if (!result.ok) {
+      formError.value = result.error
+      return
+    }
+
+    if (result.session) {
+      successMessage.value = 'Inscription réussie.'
+      await navigateTo('/')
+      return
+    }
+
+    successMessage.value = 'Inscription réussie. Vérifiez votre adresse e-mail pour activer votre compte.'
   }
-
-  isLoading.value = false
-
-  if (error) {
-    formError.value = supabaseAuthMessage(error)
-    return
+  catch {
+    formError.value = 'Une erreur est survenue. Veuillez réessayer.'
   }
-
-  successMessage.value = 'Inscription réussie. Vérifiez votre adresse e-mail.'
+  finally {
+    isLoading.value = false
+  }
 }
 </script>

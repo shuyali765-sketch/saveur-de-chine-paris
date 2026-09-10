@@ -1,3 +1,28 @@
+import { mapRestaurant } from '~/composables/useRestaurants'
+
+function favoriteErrorMessage(error, fallback) {
+  const code = error?.code || ''
+  const text = String(error?.message || '').toLowerCase()
+
+  if (code === '42501' || text.includes('row-level security') || text.includes('permission')) {
+    return 'Action non autorisée. Veuillez vous reconnecter.'
+  }
+
+  if (code === '23503' || text.includes('foreign key')) {
+    return 'Ce restaurant est introuvable dans la base de données.'
+  }
+
+  if (code === '22P02' || text.includes('invalid input syntax')) {
+    return 'Ce restaurant est introuvable dans la base de données.'
+  }
+
+  if (text.includes('jwt') || text.includes('not authenticated')) {
+    return 'Votre session a expiré. Veuillez vous reconnecter.'
+  }
+
+  return fallback
+}
+
 export function useFavorites() {
   const { userId, isLoggedIn } = useAuthSession()
   const favoriteIds = useState('favorite-ids', () => [])
@@ -28,7 +53,7 @@ export function useFavorites() {
     try {
       const { data: favs, error } = await supabase
         .from('user_favori')
-        .select('restaurant_id, created_at')
+        .select('user_id, restaurant_id, created_at')
         .eq('user_id', userId.value)
         .order('created_at', { ascending: false })
 
@@ -37,9 +62,9 @@ export function useFavorites() {
       }
 
       const ids = (favs || []).map((row) => row.restaurant_id).filter(Boolean)
-      favoriteIds.value = ids
+      favoriteIds.value = [...new Set(ids.map((id) => String(id)))]
 
-      if (ids.length === 0) {
+      if (favoriteIds.value.length === 0) {
         favoriteRestaurants.value = []
         return
       }
@@ -47,6 +72,7 @@ export function useFavorites() {
       const { data: restaurantRows, error: restaurantError } = await supabase
         .from('restaurants')
         .select('*')
+        .in('restaurant_id', favoriteIds.value)
 
       if (restaurantError) {
         throw restaurantError
@@ -60,12 +86,15 @@ export function useFavorites() {
         }
       }
 
-      favoriteRestaurants.value = ids
+      favoriteRestaurants.value = favoriteIds.value
         .map((id) => byId[String(id)])
         .filter(Boolean)
     }
     catch (error) {
-      errorMessage.value = error?.message || 'Impossible de charger vos favoris.'
+      errorMessage.value = favoriteErrorMessage(
+        error,
+        'Impossible de charger vos favoris. Veuillez réessayer.',
+      )
       favoriteIds.value = []
       favoriteRestaurants.value = []
     }
@@ -84,63 +113,70 @@ export function useFavorites() {
       return { ok: false, needsLogin: true }
     }
 
-    if (!supabase || !restaurantId) {
-      errorMessage.value = 'Action indisponible. Réessayez plus tard.'
+    if (pendingId.value) {
       return { ok: false }
     }
 
-    const looksLikeUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(restaurantId))
+    if (!supabase || !userId.value || !restaurantId) {
+      errorMessage.value = 'Action indisponible. Veuillez réessayer plus tard.'
+      return { ok: false }
+    }
+
+    const restaurantKey = String(restaurantId)
+    const looksLikeUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(restaurantKey)
     if (!looksLikeUuid) {
-      errorMessage.value = 'Ce restaurant n’est pas encore enregistré dans la table restaurants de Supabase.'
+      errorMessage.value = 'Ce restaurant est introuvable dans la base de données.'
       return { ok: false }
     }
 
-    pendingId.value = restaurantId
+    pendingId.value = restaurantKey
 
-    if (isFavorite(restaurantId)) {
+    try {
+      if (isFavorite(restaurantKey)) {
+        const { error } = await supabase
+          .from('user_favori')
+          .delete()
+          .eq('user_id', userId.value)
+          .eq('restaurant_id', restaurantKey)
+
+        if (error) {
+          errorMessage.value = favoriteErrorMessage(
+            error,
+            'Impossible de retirer ce restaurant des favoris.',
+          )
+          return { ok: false }
+        }
+
+        await loadFavorites()
+        return { ok: true }
+      }
+
       const { error } = await supabase
         .from('user_favori')
-        .delete()
-        .eq('user_id', userId.value)
-        .eq('restaurant_id', restaurantId)
-
-      pendingId.value = null
+        .insert({
+          user_id: userId.value,
+          restaurant_id: restaurantKey,
+        })
 
       if (error) {
-        errorMessage.value = error.message || 'Impossible de retirer ce favori.'
+        if (error.code === '23505') {
+          await loadFavorites()
+          return { ok: true }
+        }
+
+        errorMessage.value = favoriteErrorMessage(
+          error,
+          'Impossible d’ajouter ce restaurant aux favoris.',
+        )
         return { ok: false }
       }
 
       await loadFavorites()
       return { ok: true }
     }
-
-    const { error } = await supabase
-      .from('user_favori')
-      .insert({
-        user_id: userId.value,
-        restaurant_id: restaurantId,
-      })
-
-    pendingId.value = null
-
-    if (error) {
-      if (error.code === '23505') {
-        await loadFavorites()
-        return { ok: true }
-      }
-
-      if ((error.message || '').includes('invalid input syntax for type uuid')) {
-        errorMessage.value = 'Ce restaurant n’est pas encore enregistré dans la table restaurants de Supabase.'
-        return { ok: false }
-      }
-
-      errorMessage.value = error.message || 'Impossible d’ajouter ce favori.'
-      return { ok: false }
+    finally {
+      pendingId.value = null
     }
-
-    await loadFavorites()
-    return { ok: true }
   }
 
   return {

@@ -119,6 +119,13 @@
 
       <RestaurantComments :restaurant-id="restaurant.id" />
     </template>
+
+    <p
+      v-else
+      class="mt-8 text-sm text-muted-foreground"
+    >
+      Restaurant introuvable.
+    </p>
   </div>
 </template>
 
@@ -149,10 +156,19 @@ const hasExtraDetails = computed(() => {
 async function loadPage() {
   isLoading.value = true
   pageError.value = ''
-  const result = await loadRestaurantById(route.params.id)
-  restaurant.value = result.restaurant
-  pageError.value = result.error || ''
-  isLoading.value = false
+
+  try {
+    const result = await loadRestaurantById(route.params.id)
+    restaurant.value = result.restaurant
+    pageError.value = result.error || ''
+  }
+  catch {
+    restaurant.value = null
+    pageError.value = 'Impossible de charger le restaurant. Veuillez réessayer plus tard.'
+  }
+  finally {
+    isLoading.value = false
+  }
 }
 
 onMounted(() => {
