@@ -1,14 +1,14 @@
 <template>
     <header class="border-b border-border/80">
-        <nav class="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
+        <nav class="mx-auto flex w-full max-w-6xl items-start justify-between gap-3 px-4 py-4 sm:items-center sm:px-6">
             <NuxtLink
                 to="/"
-                class="font-serif text-lg font-semibold tracking-tight text-foreground sm:text-2xl"
+                class="min-w-0 flex-1 font-serif text-base font-semibold leading-snug tracking-tight text-pretty text-foreground sm:flex-none sm:text-2xl"
             >
-                Saveur de Chine
+                Saveurs de Chine à Paris
             </NuxtLink>
 
-            <div class="flex flex-wrap items-center justify-end gap-x-3 gap-y-2 text-sm sm:gap-x-5">
+            <div class="flex shrink-0 flex-wrap items-center justify-end gap-x-3 gap-y-2 text-sm sm:gap-x-5">
                 <NuxtLink
                     to="/"
                     class="whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground"

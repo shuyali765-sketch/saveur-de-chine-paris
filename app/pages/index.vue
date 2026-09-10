@@ -2,16 +2,16 @@
   <div class="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
     <section class="grid items-center gap-8 lg:grid-cols-2 lg:gap-14">
       <div class="min-w-0">
-        <h1 class="font-serif text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
-          Saveur de Chine à Paris
-        </h1>
-        <p class="mt-3 text-lg text-primary">
-          Mes adresses chinoises testées à Paris
+        <p class="max-w-xl text-sm italic leading-relaxed text-primary/75 sm:text-base">
+          « La mémoire des saveurs raconte d’où nous venons. »
         </p>
+        <h1 class="mt-4 font-serif text-3xl font-semibold tracking-tight text-pretty text-foreground sm:mt-5 sm:text-4xl lg:text-5xl">
+          Mes adresses chinoises préférées à Paris
+        </h1>
         <p class="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground">
-          Ici, je partage mes avis personnels sur les restaurants chinois
-          que j’ai réellement testés à Paris : l’ambiance, les plats, et
-          si j’y retournerais.
+          Je partage ici les restaurants chinois que j’ai personnellement
+          testés à Paris : mes plats préférés, mes impressions et les
+          adresses où je retournerais volontiers.
         </p>
         <form
           class="mt-8 flex w-full max-w-xl flex-col gap-3 rounded-3xl bg-secondary px-4 py-3 sm:flex-row sm:items-center sm:rounded-full sm:px-5"
