@@ -5,18 +5,10 @@
                 to="/"
                 class="min-w-0 flex-1 font-serif text-sm font-semibold leading-snug tracking-tight text-pretty text-foreground sm:text-lg md:text-2xl"
             >
-                Mes adresses chinoises préférées à Paris
+                Accueil
             </NuxtLink>
 
             <div class="flex shrink-0 flex-wrap items-center justify-end gap-x-3 gap-y-2 text-sm sm:gap-x-5">
-                <NuxtLink
-                    to="/"
-                    class="whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground"
-                    :class="{ 'font-medium text-foreground': route.path === '/' }"
-                >
-                    Accueil
-                </NuxtLink>
-
                 <template v-if="!userStore.authReady">
                     <span class="text-sm text-muted-foreground">Chargement…</span>
                 </template>

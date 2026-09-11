@@ -8,6 +8,9 @@
         <h1 class="mt-4 font-serif text-3xl font-semibold tracking-tight text-pretty text-foreground sm:mt-5 sm:text-4xl lg:text-5xl">
           Saveurs de Chine à Paris
         </h1>
+        <p class="mt-2 font-serif text-lg font-normal italic tracking-tight text-primary/80 sm:mt-3 sm:text-xl lg:text-2xl">
+          Mes restaurants chinois testés
+        </p>
         <p class="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground">
           Je partage ici les restaurants chinois que j’ai personnellement
           testés à Paris : mes plats préférés, mes impressions et les
