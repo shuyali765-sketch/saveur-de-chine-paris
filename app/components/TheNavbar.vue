@@ -3,9 +3,9 @@
         <nav class="mx-auto flex w-full max-w-6xl items-start justify-between gap-3 px-4 py-4 sm:items-center sm:px-6">
             <NuxtLink
                 to="/"
-                class="min-w-0 flex-1 font-serif text-base font-semibold leading-snug tracking-tight text-pretty text-foreground sm:flex-none sm:text-2xl"
+                class="min-w-0 flex-1 font-serif text-sm font-semibold leading-snug tracking-tight text-pretty text-foreground sm:text-lg md:text-2xl"
             >
-                Saveurs de Chine à Paris
+                Mes adresses chinoises préférées à Paris
             </NuxtLink>
 
             <div class="flex shrink-0 flex-wrap items-center justify-end gap-x-3 gap-y-2 text-sm sm:gap-x-5">

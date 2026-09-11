@@ -6,7 +6,7 @@
           « La mémoire des saveurs raconte d’où nous venons. »
         </p>
         <h1 class="mt-4 font-serif text-3xl font-semibold tracking-tight text-pretty text-foreground sm:mt-5 sm:text-4xl lg:text-5xl">
-          Mes adresses chinoises préférées à Paris
+          Saveurs de Chine à Paris
         </h1>
         <p class="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground">
           Je partage ici les restaurants chinois que j’ai personnellement
