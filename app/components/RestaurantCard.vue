@@ -128,7 +128,10 @@ async function handleFavoriteClick() {
       <p class="text-sm text-muted-foreground">
         {{ neighborhood }}
       </p>
-      <p class="mt-1 text-sm leading-relaxed text-foreground/80">
+      <p
+        v-if="review"
+        class="mt-1 text-sm leading-relaxed text-foreground/80"
+      >
         {{ review }}
       </p>
       <p

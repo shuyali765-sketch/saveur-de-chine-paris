@@ -25,9 +25,9 @@ Ce n’est pas une application de réservation, ni un back-office d’administra
 
 ## Fonctionnalités
 
-- Accueil avec texte d’introduction, barre de recherche, carrousel d’images et cartes des restaurants
-- Recherche (`/recherche`) à partir des colonnes `name`, `arrondissement`, `adresse` et `cuisine`
-- Fiche restaurant (`/restaurants/[id]`) : carte, détails disponibles, lien Google Maps s’il existe
+- Accueil avec texte d’introduction, barre de recherche, carrousel d’images et cartes des restaurants (`description_et_recommandations` sous le quartier)
+- Recherche (`/recherche`) à partir des colonnes `name`, `arrondissement`, `adresse`, `quartier` et `cuisine`
+- Fiche restaurant (`/restaurants/[id]`) : carte avec `description_et_recommandations`, détails disponibles, lien Google Maps s’il existe
 - Avis publics : lecture pour tout le monde ; publication, modification et suppression pour l’auteur connecté
 - Favoris (cœur sur les cartes) : réservés aux comptes connectés ; page `/favoris` protégée
 - Inscription (`/signup`) et connexion (`/login`) par e-mail et mot de passe Supabase
@@ -186,7 +186,6 @@ Configurer les deux variables `NUXT_PUBLIC_*` dans le projet Vercel, puis redép
 ## Limites actuelles
 
 - La recherche charge la table `restaurants` puis filtre dans le navigateur ; ce n’est pas une recherche SQL avancée
-- Le champ d’avis lu par le code (`description`, etc.) n’est pas le nom exact de la colonne distante (`description_et_recommandations`)
 - `recommanded_dishes` est un texte dans la base, pas un tableau
 - La préférence de cuisine du formulaire d’inscription n’est pas stockée
 - Pas de réservation, pas de carte interactive, pas d’espace administrateur
@@ -197,7 +196,6 @@ Configurer les deux variables `NUXT_PUBLIC_*` dans le projet Vercel, puis redép
 
 ## Pistes d’amélioration
 
-- Relier clairement le mapping des cartes à `description_et_recommandations`
 - Enregistrer (ou retirer) le champ de préférence culinaire
 - Ajouter une récupération de mot de passe via Supabase Auth
 - Affiner la recherche côté base si le catalogue grandit

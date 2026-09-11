@@ -100,12 +100,69 @@ function frenchStem(word) {
   return word
 }
 
+function extractArrondissementNumbers(value) {
+  const numbers = new Set()
+  const text = normalizeSearchText(Array.isArray(value) ? value.join(' ') : value)
+
+  if (!text) {
+    return numbers
+  }
+
+  for (const match of text.matchAll(/\b(\d{1,2})arrondissement\b/g)) {
+    const n = Number(match[1])
+    if (n >= 1 && n <= 20) {
+      numbers.add(n)
+    }
+  }
+
+  for (const match of text.matchAll(/\b(\d{1,2})(?:ere|eme|er|e)(?:arrondissement)?\b/g)) {
+    const n = Number(match[1])
+    if (n >= 1 && n <= 20) {
+      numbers.add(n)
+    }
+  }
+
+  return numbers
+}
+
+function isArrondissementNumberToken(token) {
+  return /^(?:\d{1,2}(?:ere|eme|er|e)(?:arrondissement)?|\d{1,2}(?:ere|eme|er|e)?arrondissement)$/.test(token)
+}
+
+function arrondissementNumberFromToken(token) {
+  const match = String(token || '').match(/^(\d{1,2})(?:ere|eme|er|e)?$/)
+  if (!match) {
+    return null
+  }
+
+  const n = Number(match[1])
+  return n >= 1 && n <= 20 ? n : null
+}
+
 function tokenMatchesWord(token, word) {
   if (!token || !word) {
     return false
   }
 
-  if (word.includes(token) || (token.length >= 3 && word.length >= 3 && token.includes(word))) {
+  const tokenNumber = arrondissementNumberFromToken(token)
+  const wordNumber = arrondissementNumberFromToken(word)
+  if (tokenNumber != null || wordNumber != null) {
+    return tokenNumber != null && tokenNumber === wordNumber
+  }
+
+  if (word.includes(token)) {
+    return true
+  }
+
+  // Avoid "3arrondissement" matching every restaurant that contains "arrondissement".
+  if (
+    token.length >= 4
+    && word.length >= 4
+    && token.includes(word)
+    && word !== 'arrondissement'
+    && word !== 'cuisine'
+    && word !== 'restaurant'
+  ) {
     return true
   }
 
@@ -113,20 +170,43 @@ function tokenMatchesWord(token, word) {
 }
 
 export function restaurantMatchesSearchQuery(row, query) {
-  const tokens = toSearchWords(query)
-
-  if (tokens.length === 0) {
-    return true
-  }
-
+  const name = textValue(row.name || row.nom || row.titre || row.title)
   const cuisine = Array.isArray(row.cuisine)
     ? row.cuisine
     : (row.cuisine || '')
-
-  const words = toSearchWords([
-    row.name,
+  const quartier = textValue(row.quartier) || quartierByRestaurantName[name] || ''
+  const locationText = [
     row.arrondissement,
     row.adresse,
+    row.address,
+    row.neighborhood,
+    quartier,
+    formatNeighborhoodLabel(row),
+  ].join(' ')
+
+  const queryNumbers = extractArrondissementNumbers(query)
+  const restaurantNumbers = extractArrondissementNumbers(locationText)
+
+  if (queryNumbers.size > 0) {
+    const matchesArrondissement = [...queryNumbers].some((n) => restaurantNumbers.has(n))
+    if (!matchesArrondissement) {
+      return false
+    }
+  }
+
+  const tokens = toSearchWords(query).filter((token) => !isArrondissementNumberToken(token))
+
+  if (tokens.length === 0) {
+    return queryNumbers.size > 0
+  }
+
+  const words = toSearchWords([
+    name,
+    row.arrondissement,
+    row.adresse,
+    row.address,
+    row.neighborhood,
+    quartier,
     cuisine,
   ])
 
@@ -157,7 +237,13 @@ export function mapRestaurant(row) {
     rating: row.rating == null || row.rating === '' ? '' : String(row.rating),
     googleMapsUrl: textValue(row.google_maps_url || row.maps_url),
     recommendedDishes: toList(row.recommanded_dishes || row.recommended_dishes || row.plats_recommandes),
-    review: row.review || row.description || row.avis || row.texte || '',
+    review: textValue(
+      row.description_et_recommandations
+      || row.review
+      || row.description
+      || row.avis
+      || row.texte,
+    ),
     image: row.image || row.image_url || row.photo || row.photo_url || row.cover || '/images/plats-chinois.jpg',
     alt: row.alt || name || 'Restaurant chinois à Paris',
   }
